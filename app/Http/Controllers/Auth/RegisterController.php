@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\LegalPersonProfile;
+use App\Models\PhysicalPersonProfile;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -53,6 +55,9 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'phone_numbers' => ['required'],
+            'uf' => ['required', 'string'],
+            'category' => ['required', 'exists:categories,id']
         ]);
     }
 
@@ -64,10 +69,31 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $user = User::create([
             'name' => $data['name'],
+            'phone_numbers' => $data['phone_numbers'],
+            'uf' => $data['uf'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'category_id' => $data['category']
         ]);
+
+        $profile = null;
+
+        if ($data['user_type'] === 'pf') {
+            $profile = PhysicalPersonProfile::create([
+                'date_of_birth' => $data['date_of_birth'],
+            ]);
+        }
+
+        if ($data['user_type'] === 'pj') {
+            $profile = LegalPersonProfile::create([
+                'foundation_date' => $data['foundation_date'],
+            ]);
+        }
+
+        $profile->user()->save($user);
+
+        return $user;
     }
 }
