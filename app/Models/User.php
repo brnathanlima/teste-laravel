@@ -45,6 +45,11 @@ class User extends Authenticatable
         return $this->morphTo();
     }
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
     public function setPhoneNumbersAttribute($phone_numbers)
     {
         $phone_numbers = array_map(function ($phone_number) {
